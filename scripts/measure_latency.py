@@ -1,9 +1,13 @@
 import argparse
+import sys
 import time
+from pathlib import Path
 
-import httpx
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ml.latency_stats import compute_percentiles
+import httpx  # noqa: E402
+
+from ml.latency_stats import compute_percentiles  # noqa: E402
 
 SAMPLE_TEXTS = [
     "Paciente com dor toracica aguda e sudorese, suspeita de infarto.",

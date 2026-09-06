@@ -1,7 +1,10 @@
 import argparse
+import sys
 from pathlib import Path
 
-from ml.train import save_model, train_from_csv
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from ml.train import save_model, train_from_csv  # noqa: E402
 
 
 def main() -> None:
