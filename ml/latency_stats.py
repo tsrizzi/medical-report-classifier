@@ -1,5 +1,5 @@
 import statistics
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def compute_percentiles(durations_seconds: Sequence[float]) -> dict:
