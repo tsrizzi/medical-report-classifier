@@ -74,3 +74,37 @@ detalhadas em `notebooks/01_eda.ipynb`. É uma heurística assumida para
 fins didáticos de MLOps, não uma classificação clinicamente validada — o
 foco do desafio é o ciclo de vida do modelo (CI/CD, orquestração,
 observabilidade, latência), não a acurácia clínica do classificador.
+
+## CI/CD (GitHub Actions)
+
+O workflow em `.github/workflows/ci.yml` roda em todo push/PR, em 3 jobs
+sequenciais: `lint` (ruff) → `test` (pytest, excluindo testes marcados
+`airflow`) → `build` (build da imagem Docker da API). Isso cobre a
+exigência de "pelo menos 2 automações" com folga.
+
+## Orquestração de treino (Airflow)
+
+A DAG `triage_training_pipeline` (`dags/training_dag.py`) tem duas tasks
+via TaskFlow API:
+
+1. `load_data` — extrai/processa o dataset (`ml.data.prepare_processed_datasets`).
+2. `train_and_save` — treina o pipeline TF-IDF + RandomForest e salva o
+   `.joblib` (`ml.train.train_from_csv` / `save_model`).
+
+Para rodar localmente via Docker:
+
+```bash
+docker compose -f docker-compose.airflow.yml up -d
+# abrir http://localhost:8080, logar com o usuario/senha do log do container
+# habilitar e disparar a DAG "triage_training_pipeline"
+docker compose -f docker-compose.airflow.yml down
+```
+
+Nota: o Airflow **não** roda na CI do GitHub Actions — é uma dependência
+pesada e sensível a versão (exige um arquivo de constraints oficial para
+instalar via pip). O teste automatizado da DAG
+(`tests/test_training_dag.py`) existe e roda localmente quando o
+desenvolvedor tem `apache-airflow` instalado (`requirements-airflow.txt`,
+idealmente em WSL/Linux), mas é excluído da CI via marcador pytest
+(`pytest -m "not airflow"`). A validação funcional "de verdade" é feita
+via `docker-compose.airflow.yml`, demonstrada no vídeo do projeto.
