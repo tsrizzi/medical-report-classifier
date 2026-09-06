@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+.env
+.ipynb_checkpoints/
+
+# Dataset bruto/derivado (grande e/ou regeneravel - ver README "Preparando o dataset")
+archive*.zip
+data/raw/
+data/processed/
+
+# Documentos de direcionamento interno do projeto (nao sao o entregavel)
+docs/
+MLET - Tech Challenge Fase 3.pdf
+material_fase*/
+
+# Estado local do Airflow, se rodado fora de Docker
+airflow_home_local/
+*.airflow.db
