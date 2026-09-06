@@ -1,0 +1,20 @@
+services:
+  airflow:
+    image: apache/airflow:2.9.3-python3.11
+    command: standalone
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      PYTHONPATH: /opt/airflow
+      _PIP_ADDITIONAL_REQUIREMENTS: "scikit-learn>=1.5,<2.0 pandas>=2.2,<3.0 joblib>=1.4,<2.0"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./ml:/opt/airflow/ml
+      - ./data:/opt/airflow/data
+      - ./models:/opt/airflow/models
+      - airflow_home:/opt/airflow
+    ports:
+      - "8080:8080"
+
+volumes:
+  airflow_home:
