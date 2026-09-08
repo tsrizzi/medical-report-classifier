@@ -108,3 +108,29 @@ desenvolvedor tem `apache-airflow` instalado (`requirements-airflow.txt`,
 idealmente em WSL/Linux), mas é excluído da CI via marcador pytest
 (`pytest -m "not airflow"`). A validação funcional "de verdade" é feita
 via `docker-compose.airflow.yml`, demonstrada no vídeo do projeto.
+
+## Monitoramento (Prometheus + Grafana)
+
+A API expõe métricas Prometheus em `/metrics` via `prometheus_client`:
+
+- `triage_requests_total{method,path,status_code}` — contagem de requisicoes.
+- `triage_request_latency_seconds{method,path}` — histograma de latencia.
+- `triage_errors_total{method,path,status_code}` — contagem de erros (status >= 400).
+
+Subir a stack completa:
+
+```bash
+docker compose up -d
+python scripts/generate_load.py --count 300 --error-rate 0.05
+```
+
+- API: http://localhost:8000
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (login `admin`/`admin`, dashboard
+  "Triagem de Laudos - API" provisionado automaticamente na pasta
+  "Triagem", com 3 paineis: total de requisicoes por rota, latencia p95 e
+  taxa de erros).
+
+```bash
+docker compose down
+```
