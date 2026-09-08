@@ -3,10 +3,14 @@ from functools import lru_cache
 from fastapi import Depends, FastAPI
 
 from triage_api.config import get_settings
+from triage_api.metrics import metrics_endpoint, metrics_middleware
 from triage_api.model import TriageModel
 from triage_api.schemas import TriageRequest, TriageResponse
 
 app = FastAPI(title="Triagem de Laudos Medicos")
+
+app.middleware("http")(metrics_middleware)
+app.add_api_route("/metrics", metrics_endpoint, methods=["GET"])
 
 
 @lru_cache
