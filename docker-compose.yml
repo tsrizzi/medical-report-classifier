@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MODEL_BACKEND: sklearn
+      MODEL_BACKEND: onnx
       MODELS_DIR: /app/models
     volumes:
       - ./models:/app/models:ro
