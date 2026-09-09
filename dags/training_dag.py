@@ -17,10 +17,13 @@ MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 def triage_training_pipeline():
     @task
     def load_data() -> str:
-        from ml.data import prepare_processed_datasets
+        from ml.data import extract_raw_dataset, prepare_processed_datasets
 
+        zip_path = DATA_DIR / "archive (1).zip"
         raw_dir = DATA_DIR / "raw"
         processed_dir = DATA_DIR / "processed"
+        if not (raw_dir / "medical_tc_train.csv").exists():
+            extract_raw_dataset(zip_path, raw_dir)
         prepare_processed_datasets(raw_dir, processed_dir)
         return str(processed_dir / "triage_train.csv")
 
