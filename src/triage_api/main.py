@@ -22,7 +22,12 @@ def get_model() -> TriageModel:
 @app.get("/health")
 def health() -> dict:
     settings = get_settings()
-    return {"status": "ok", "backend": settings.model_backend}
+    try:
+        get_model()
+        status = "ok"
+    except Exception:
+        status = "degraded"
+    return {"status": status, "backend": settings.model_backend}
 
 
 @app.post("/predict", response_model=TriageResponse)
