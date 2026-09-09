@@ -46,18 +46,35 @@ mas não substitui o caminho real-time, que é o requisito clínico central.
 ## Como executar a API localmente
 
 ```bash
-python scripts/prepare_dataset.py
-python scripts/train_model.py
 docker build -t triage-api .
 docker run --rm -p 8000:8000 -v "$(pwd)/models:/app/models:ro" triage-api
 ```
 
-Testar:
+Os artefatos do modelo (`models/triage_model.joblib`,
+`models/triage_classifier.onnx`) já estão versionados no repositório —
+não é necessário treinar nada para rodar a API.
+
+Testar (o modelo é treinado no Medical Abstracts TC Corpus, em inglês —
+use texto em inglês para obter uma predição significativa):
 
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
-  -d "{\"text\": \"Paciente com dor toracica aguda e sudorese.\"}"
+  -d "{\"text\": \"Acute abdominal pain required emergency surgical intervention.\"}"
+```
+
+A API expõe documentação interativa (Swagger UI) em
+`http://localhost:8000/docs`.
+
+### Retreinar o modelo (opcional)
+
+Só é necessário se você quiser regenerar os artefatos a partir do
+dataset. Requer o arquivo `archive (1).zip` (Medical Abstracts TC Corpus,
+Kaggle) na raiz do projeto:
+
+```bash
+python scripts/prepare_dataset.py
+python scripts/train_model.py
 ```
 
 ## Sobre o rótulo de urgência
@@ -74,6 +91,16 @@ detalhadas em `notebooks/01_eda.ipynb`. É uma heurística assumida para
 fins didáticos de MLOps, não uma classificação clinicamente validada — o
 foco do desafio é o ciclo de vida do modelo (CI/CD, orquestração,
 observabilidade, latência), não a acurácia clínica do classificador.
+
+Como o rótulo é uma função determinística de palavras-chave presentes no
+próprio texto, o modelo tende a **aprender a heurística**, não um padrão
+clínico independente — por isso uma acurácia alta no conjunto de teste é
+esperada e não deve ser lida como validação clínica.
+
+`python scripts/train_model.py` também avalia o modelo treinado contra o
+split de teste (`data/processed/triage_test.csv`) e grava o relatório em
+`reports/model_evaluation.md`. Na última execução, a acurácia obtida foi
+**0.9498** (ver detalhamento por classe no arquivo do relatório).
 
 ## CI/CD (GitHub Actions)
 
@@ -135,6 +162,17 @@ python scripts/generate_load.py --count 300 --error-rate 0.05
 docker compose down
 ```
 
+### Latência baseline medida
+
+Gerada por `python scripts/measure_latency.py` contra a API rodando com o
+backend sklearn (ver `reports/baseline_latency.md`):
+
+- Requisições: 200
+- p50: 65.98 ms
+- p95: 72.80 ms
+- p99: 104.35 ms
+- média: 67.02 ms
+
 ## Otimização de latência (ONNX Runtime)
 
 O classificador `RandomForestClassifier` (etapa mais custosa da inferência,
@@ -146,10 +184,12 @@ inteiros para ONNX.
 
 Resultado da comparação sklearn vs onnx (gerado por
 `python scripts/compare_latency.py`, ver `reports/latency_comparison.md`
-para os números atuais):
+para os números atuais, reproduzidos abaixo):
 
-_(a tabela completa fica em `reports/latency_comparison.md`, atualizada a
-cada execução do script)_
+| Backend | p50 (ms) | p95 (ms) | p99 (ms) | média (ms) | amostras |
+|---|---|---|---|---|---|
+| sklearn (RandomForest puro) | 39.45 | 52.56 | 69.22 | 41.51 | 600 |
+| onnx (classificador convertido) | 0.42 | 1.14 | 16.44 | 0.95 | 600 |
 
 Para alternar entre os dois backends em runtime, definir a variável de
 ambiente `MODEL_BACKEND=sklearn` ou `MODEL_BACKEND=onnx` (o

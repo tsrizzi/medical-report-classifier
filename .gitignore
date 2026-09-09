@@ -8,7 +8,7 @@ venv/
 .env
 .ipynb_checkpoints/
 
-# Dataset bruto/derivado (grande e/ou regeneravel - ver README "Preparando o dataset")
+# Dataset bruto/derivado (grande e/ou regeneravel - ver README "Retreinar o modelo (opcional)")
 archive*.zip
 data/raw/
 data/processed/
