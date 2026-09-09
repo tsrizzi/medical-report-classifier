@@ -1,7 +1,7 @@
 import joblib
 
 from ml.data import build_labeled_dataset
-from ml.train import save_model, train_model
+from ml.train import evaluate_model, save_model, train_model
 
 
 def test_train_model_predicts_known_classes(sample_medical_tc_csv):
@@ -25,3 +25,13 @@ def test_save_model_round_trips_predictions(sample_medical_tc_csv, tmp_path):
 
     text = "Chronic but stable presentation of the nervous system disorder."
     assert reloaded.predict([text])[0] == pipeline.predict([text])[0]
+
+
+def test_evaluate_model_returns_accuracy_and_report(sample_medical_tc_csv):
+    df = build_labeled_dataset(sample_medical_tc_csv)
+    pipeline = train_model(df)
+
+    metrics = evaluate_model(pipeline, df)
+
+    assert 0.0 <= metrics["accuracy"] <= 1.0
+    assert "precision" in metrics["report"]

@@ -18,7 +18,9 @@ class TriageModel:
 
             self._vectorizer = joblib.load(models_dir / "triage_vectorizer.joblib")
             self._session = ort.InferenceSession(str(models_dir / "triage_classifier.onnx"))
-            self._classes = json.loads((models_dir / "triage_model_classes.json").read_text())
+            self._classes = json.loads(
+                (models_dir / "triage_model_classes.json").read_text(encoding="utf-8")
+            )
         else:
             raise ValueError(f"unsupported MODEL_BACKEND: {backend}")
 

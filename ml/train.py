@@ -4,6 +4,7 @@ import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import accuracy_score, classification_report
 from sklearn.pipeline import Pipeline
 
 
@@ -34,3 +35,10 @@ def save_model(pipeline: Pipeline, output_path: Path) -> None:
 def train_from_csv(csv_path: Path) -> Pipeline:
     df = pd.read_csv(csv_path)
     return train_model(df)
+
+
+def evaluate_model(pipeline: Pipeline, test_df: pd.DataFrame) -> dict:
+    predictions = pipeline.predict(test_df["text"])
+    accuracy = accuracy_score(test_df["urgency_label"], predictions)
+    report = classification_report(test_df["urgency_label"], predictions)
+    return {"accuracy": accuracy, "report": report}

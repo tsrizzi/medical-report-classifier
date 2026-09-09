@@ -21,7 +21,9 @@ def convert_classifier_to_onnx(pipeline: Pipeline, output_dir: Path) -> None:
         options={id(classifier): {"zipmap": False}},
     )
     (output_dir / "triage_classifier.onnx").write_bytes(onnx_model.SerializeToString())
-    (output_dir / "triage_model_classes.json").write_text(json.dumps(list(classifier.classes_)))
+    (output_dir / "triage_model_classes.json").write_text(
+        json.dumps(list(classifier.classes_)), encoding="utf-8"
+    )
 
 
 def convert_from_joblib(sklearn_pipeline_path: Path, output_dir: Path) -> None:
