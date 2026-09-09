@@ -8,12 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import httpx  # noqa: E402
 
 from ml.latency_stats import compute_percentiles  # noqa: E402
-
-SAMPLE_TEXTS = [
-    "Paciente com dor toracica aguda e sudorese, suspeita de infarto.",
-    "Exame de rotina sem alteracoes significativas.",
-    "Achados moderados sugerem necessidade de acompanhamento em duas semanas.",
-]
+from ml.samples import SAMPLE_MEDICAL_TEXTS as SAMPLE_TEXTS  # noqa: E402
 
 
 def run_latency_probe(client: httpx.Client, n_requests: int) -> list[float]:

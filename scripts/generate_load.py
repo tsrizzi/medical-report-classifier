@@ -1,14 +1,14 @@
 import argparse
 import random
+import sys
 import time
+from pathlib import Path
 
 import httpx
 
-VALID_TEXTS = [
-    "Paciente com dor toracica aguda e sudorese, suspeita de infarto.",
-    "Exame de rotina sem alteracoes significativas.",
-    "Achados moderados sugerem necessidade de acompanhamento em duas semanas.",
-]
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from ml.samples import SAMPLE_MEDICAL_TEXTS as VALID_TEXTS  # noqa: E402
 
 
 def pick_payload(rng: random.Random, error_rate: float) -> dict:

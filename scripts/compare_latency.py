@@ -7,13 +7,8 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
 from ml.benchmark import benchmark_backend  # noqa: E402
+from ml.samples import SAMPLE_MEDICAL_TEXTS as SAMPLE_TEXTS  # noqa: E402
 from triage_api.model import TriageModel  # noqa: E402
-
-SAMPLE_TEXTS = [
-    "Paciente com dor toracica aguda e sudorese, suspeita de infarto.",
-    "Exame de rotina sem alteracoes significativas.",
-    "Achados moderados sugerem necessidade de acompanhamento em duas semanas.",
-]
 
 
 def main() -> None:
