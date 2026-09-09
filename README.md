@@ -134,3 +134,35 @@ python scripts/generate_load.py --count 300 --error-rate 0.05
 ```bash
 docker compose down
 ```
+
+## Otimização de latência (ONNX Runtime)
+
+O classificador `RandomForestClassifier` (etapa mais custosa da inferência,
+com `n_estimators=100`/`max_depth=20`) foi convertido para ONNX Runtime via
+`skl2onnx` (`ml/export_onnx.py`). O `TfidfVectorizer` permanece em
+scikit-learn/Python — apenas a árvore de decisão roda via ONNX Runtime, o
+que evita a fragilidade conhecida da conversão de pipelines de texto
+inteiros para ONNX.
+
+Resultado da comparação sklearn vs onnx (gerado por
+`python scripts/compare_latency.py`, ver `reports/latency_comparison.md`
+para os números atuais):
+
+_(a tabela completa fica em `reports/latency_comparison.md`, atualizada a
+cada execução do script)_
+
+Para alternar entre os dois backends em runtime, definir a variável de
+ambiente `MODEL_BACKEND=sklearn` ou `MODEL_BACKEND=onnx` (o
+`docker-compose.yml` já usa `onnx` por padrão).
+
+## Vídeo (metodo STAR)
+
+Link do vídeo gravado: **[ADICIONAR LINK APOS A GRAVACAO]**
+
+## Rodando os testes e o lint
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest -m "not airflow"
+```
