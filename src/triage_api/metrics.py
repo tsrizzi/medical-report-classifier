@@ -23,10 +23,21 @@ ERROR_COUNT = Counter(
 
 
 async def metrics_middleware(request: Request, call_next: Callable) -> Response:
+    if request.url.path == "/metrics":
+        return await call_next(request)
+
     start_time = time.perf_counter()
-    response = await call_next(request)
-    duration = time.perf_counter() - start_time
     path = request.url.path
+    try:
+        response = await call_next(request)
+    except Exception:
+        duration = time.perf_counter() - start_time
+        REQUEST_LATENCY.labels(method=request.method, path=path).observe(duration)
+        REQUEST_COUNT.labels(method=request.method, path=path, status_code=500).inc()
+        ERROR_COUNT.labels(method=request.method, path=path, status_code=500).inc()
+        raise
+
+    duration = time.perf_counter() - start_time
     REQUEST_LATENCY.labels(method=request.method, path=path).observe(duration)
     REQUEST_COUNT.labels(
         method=request.method, path=path, status_code=response.status_code
