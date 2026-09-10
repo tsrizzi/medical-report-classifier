@@ -26,8 +26,8 @@ class TriageModel:
 
     def predict(self, text: str) -> dict:
         if self.backend == "sklearn":
-            label = self._pipeline.predict([text])[0]
             proba = self._pipeline.predict_proba([text])[0]
+            label = self._classes[int(np.argmax(proba))]
         else:
             features = self._vectorizer.transform([text]).toarray().astype(np.float32)
             input_name = self._session.get_inputs()[0].name

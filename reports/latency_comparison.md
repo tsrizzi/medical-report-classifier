@@ -2,5 +2,5 @@
 
 | Backend | p50 (ms) | p95 (ms) | p99 (ms) | media (ms) | amostras |
 |---|---|---|---|---|---|
-| sklearn (RandomForest puro) | 39.45 | 52.56 | 69.22 | 41.51 | 600 |
-| onnx (classificador convertido) | 0.42 | 1.14 | 16.44 | 0.95 | 600 |
+| sklearn (RandomForest puro) | 19.55 | 24.79 | 42.50 | 20.63 | 600 |
+| onnx (classificador convertido) | 0.39 | 0.50 | 0.97 | 0.74 | 600 |

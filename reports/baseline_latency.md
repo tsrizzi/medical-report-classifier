@@ -1,7 +1,7 @@
 # Latencia baseline da API (backend sklearn)
 
 - Requisicoes: 200
-- p50: 65.98 ms
-- p95: 72.80 ms
-- p99: 104.35 ms
-- media: 67.02 ms
+- p50: 78.01 ms
+- p95: 85.00 ms
+- p99: 90.96 ms
+- media: 77.03 ms
