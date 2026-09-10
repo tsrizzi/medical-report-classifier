@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import httpx  # noqa: E402
+import httpx2 as httpx  # noqa: E402
 
 from ml.latency_stats import compute_percentiles  # noqa: E402
 from ml.samples import SAMPLE_MEDICAL_TEXTS as SAMPLE_TEXTS  # noqa: E402
