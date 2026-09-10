@@ -11,7 +11,7 @@
   "panels": [
     {
       "id": 1,
-      "title": "Total de requisicoes por rota",
+      "title": "Taxa de requisicoes por rota (req/s)",
       "type": "timeseries",
       "datasource": "Prometheus",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },

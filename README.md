@@ -69,8 +69,9 @@ A API expõe documentação interativa (Swagger UI) em
 ### Retreinar o modelo (opcional)
 
 Só é necessário se você quiser regenerar os artefatos a partir do
-dataset. Requer o arquivo `archive (1).zip` (Medical Abstracts TC Corpus,
-Kaggle) na raiz do projeto:
+dataset. Requer o arquivo `archive (1).zip` (Medical Abstracts TC Corpus —
+fonte original: https://github.com/sebischair/Medical-Abstracts-TC-Corpus,
+também disponível no Kaggle) na raiz do projeto:
 
 ```bash
 python scripts/prepare_dataset.py
@@ -155,7 +156,7 @@ python scripts/generate_load.py --count 300 --error-rate 0.05
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000 (login `admin`/`admin`, dashboard
   "Triagem de Laudos - API" provisionado automaticamente na pasta
-  "Triagem", com 3 paineis: total de requisicoes por rota, latencia p95 e
+  "Triagem", com 3 paineis: taxa de requisicoes por rota, latencia p95 e
   taxa de erros).
 
 ```bash
@@ -165,13 +166,17 @@ docker compose down
 ### Latência baseline medida
 
 Gerada por `python scripts/measure_latency.py` contra a API rodando com o
-backend sklearn (ver `reports/baseline_latency.md`):
+backend sklearn (ver `reports/baseline_latency.md`). Esta é uma medição
+**fim a fim via HTTP** (rede + FastAPI + container Docker + inferência) —
+por isso os valores são maiores do que os da tabela de comparação de
+backends logo abaixo, que mede **apenas a chamada de inferência em
+processo**, sem a camada HTTP/Docker por cima:
 
 - Requisições: 200
-- p50: 65.98 ms
-- p95: 72.80 ms
-- p99: 104.35 ms
-- média: 67.02 ms
+- p50: 78.01 ms
+- p95: 85.00 ms
+- p99: 90.96 ms
+- média: 77.03 ms
 
 ## Otimização de latência (ONNX Runtime)
 
@@ -183,13 +188,22 @@ que evita a fragilidade conhecida da conversão de pipelines de texto
 inteiros para ONNX.
 
 Resultado da comparação sklearn vs onnx (gerado por
-`python scripts/compare_latency.py`, ver `reports/latency_comparison.md`
-para os números atuais, reproduzidos abaixo):
+`python scripts/compare_latency.py`, medindo apenas a chamada
+`TriageModel.predict()` em processo — sem rede/HTTP/Docker; ver
+`reports/latency_comparison.md` para os números atuais, reproduzidos
+abaixo). Os dois backends chamam `predict_proba` uma única vez e obtêm o
+rótulo por `argmax`, então a comparação isola o custo real da inferência,
+sem chamadas redundantes de um lado só:
 
 | Backend | p50 (ms) | p95 (ms) | p99 (ms) | média (ms) | amostras |
 |---|---|---|---|---|---|
-| sklearn (RandomForest puro) | 39.45 | 52.56 | 69.22 | 41.51 | 600 |
-| onnx (classificador convertido) | 0.42 | 1.14 | 16.44 | 0.95 | 600 |
+| sklearn (RandomForest puro) | 19.55 | 24.79 | 42.50 | 20.63 | 600 |
+| onnx (classificador convertido) | 0.39 | 0.50 | 0.97 | 0.74 | 600 |
+
+Ganho de ~50x no p50 (19.55 ms → 0.39 ms) só trocando a execução do
+classificador para o ONNX Runtime, sem alterar o vetorizador nem a
+acurácia (paridade de classificação verificada em `tests/test_export_onnx.py`
+e `tests/test_model_onnx_backend.py`).
 
 Para alternar entre os dois backends em runtime, definir a variável de
 ambiente `MODEL_BACKEND=sklearn` ou `MODEL_BACKEND=onnx` (o
