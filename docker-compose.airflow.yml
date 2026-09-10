@@ -12,6 +12,7 @@ services:
       - ./ml:/opt/airflow/ml
       - ./data:/opt/airflow/data
       - ./models:/opt/airflow/models
+      - "./archive (1).zip:/opt/airflow/archive (1).zip:ro"
       - airflow_home:/opt/airflow
     ports:
       - "8080:8080"

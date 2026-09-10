@@ -19,7 +19,7 @@ def triage_training_pipeline():
     def load_data() -> str:
         from ml.data import extract_raw_dataset, prepare_processed_datasets
 
-        zip_path = DATA_DIR / "archive (1).zip"
+        zip_path = DATA_DIR.parent / "archive (1).zip"
         raw_dir = DATA_DIR / "raw"
         processed_dir = DATA_DIR / "processed"
         if not (raw_dir / "medical_tc_train.csv").exists():
