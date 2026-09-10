@@ -1,4 +1,11 @@
-# Instalar isoladamente (idealmente em outro virtualenv/WSL), NÃO faz parte da CI:
+# Instalar isoladamente (idealmente em outro virtualenv/WSL), NÃO faz parte
+# do ambiente gerenciado por uv/pyproject.toml nem da CI — apache-airflow
+# tem dependências pesadas e conflitantes com o restante do projeto.
+#
 # pip install -r requirements-airflow.txt \
+#   --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.11.txt"
+#
+# ou, com uv, em um venv isolado (nao o .venv deste projeto):
+# uv venv .venv-airflow && uv pip install --python .venv-airflow -r requirements-airflow.txt \
 #   --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.11.txt"
 apache-airflow==2.9.3

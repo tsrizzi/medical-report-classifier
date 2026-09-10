@@ -74,8 +74,8 @@ fonte original: https://github.com/sebischair/Medical-Abstracts-TC-Corpus,
 também disponível no Kaggle) na raiz do projeto:
 
 ```bash
-python scripts/prepare_dataset.py
-python scripts/train_model.py
+uv run python scripts/prepare_dataset.py
+uv run python scripts/train_model.py
 ```
 
 ## Sobre o rótulo de urgência
@@ -98,7 +98,7 @@ próprio texto, o modelo tende a **aprender a heurística**, não um padrão
 clínico independente — por isso uma acurácia alta no conjunto de teste é
 esperada e não deve ser lida como validação clínica.
 
-`python scripts/train_model.py` também avalia o modelo treinado contra o
+`uv run python scripts/train_model.py` também avalia o modelo treinado contra o
 split de teste (`data/processed/triage_test.csv`) e grava o relatório em
 `reports/model_evaluation.md`. Na última execução, a acurácia obtida foi
 **0.9498** (ver detalhamento por classe no arquivo do relatório).
@@ -149,7 +149,7 @@ Subir a stack completa:
 
 ```bash
 docker compose up -d
-python scripts/generate_load.py --count 300 --error-rate 0.05
+uv run python scripts/generate_load.py --count 300 --error-rate 0.05
 ```
 
 - API: http://localhost:8000
@@ -165,7 +165,7 @@ docker compose down
 
 ### Latência baseline medida
 
-Gerada por `python scripts/measure_latency.py` contra a API rodando com o
+Gerada por `uv run python scripts/measure_latency.py` contra a API rodando com o
 backend sklearn (ver `reports/baseline_latency.md`). Esta é uma medição
 **fim a fim via HTTP** (rede + FastAPI + container Docker + inferência) —
 por isso os valores são maiores do que os da tabela de comparação de
@@ -173,10 +173,10 @@ backends logo abaixo, que mede **apenas a chamada de inferência em
 processo**, sem a camada HTTP/Docker por cima:
 
 - Requisições: 200
-- p50: 78.01 ms
-- p95: 85.00 ms
-- p99: 90.96 ms
-- média: 77.03 ms
+- p50: 58.87 ms
+- p95: 64.65 ms
+- p99: 102.82 ms
+- média: 59.66 ms
 
 ## Otimização de latência (ONNX Runtime)
 
@@ -188,7 +188,7 @@ que evita a fragilidade conhecida da conversão de pipelines de texto
 inteiros para ONNX.
 
 Resultado da comparação sklearn vs onnx (gerado por
-`python scripts/compare_latency.py`, medindo apenas a chamada
+`uv run python scripts/compare_latency.py`, medindo apenas a chamada
 `TriageModel.predict()` em processo — sem rede/HTTP/Docker; ver
 `reports/latency_comparison.md` para os números atuais, reproduzidos
 abaixo). Os dois backends chamam `predict_proba` uma única vez e obtêm o
@@ -197,8 +197,15 @@ sem chamadas redundantes de um lado só:
 
 | Backend | p50 (ms) | p95 (ms) | p99 (ms) | média (ms) | amostras |
 |---|---|---|---|---|---|
-| sklearn (RandomForest puro) | 19.55 | 24.79 | 42.50 | 20.63 | 600 |
-| onnx (classificador convertido) | 0.39 | 0.50 | 0.97 | 0.74 | 600 |
+| sklearn (RandomForest puro) | 43.91 | 52.56 | 82.76 | 45.16 | 600 |
+| onnx (classificador convertido) | 1.19 | 2.30 | 5.49 | 1.57 | 600 |
+
+Ganho de ~37x no p50 (43.91 ms → 1.19 ms) só trocando a execução do
+classificador para o ONNX Runtime, sem alterar o vetorizador nem a
+acurácia (paridade de classificação verificada em `tests/test_export_onnx.py`
+e `tests/test_model_onnx_backend.py`). Valores absolutos de latência variam
+com a carga da máquina onde o benchmark roda — o que se mantém estável
+entre execuções é a ordem de grandeza do ganho relativo do ONNX.
 
 Ganho de ~50x no p50 (19.55 ms → 0.39 ms) só trocando a execução do
 classificador para o ONNX Runtime, sem alterar o vetorizador nem a
@@ -215,8 +222,16 @@ Link do vídeo gravado: **[ADICIONAR LINK APOS A GRAVACAO]**
 
 ## Rodando os testes e o lint
 
+O projeto usa [uv](https://docs.astral.sh/uv/) para gerenciar dependências
+e o ambiente virtual (`pyproject.toml` + `uv.lock`). Instalar o uv
+([instruções oficiais](https://docs.astral.sh/uv/getting-started/installation/))
+e então:
+
 ```bash
-pip install -r requirements-dev.txt
-ruff check .
-pytest -m "not airflow"
+uv sync
+uv run ruff check .
+uv run pytest -m "not airflow"
 ```
+
+`uv run` sincroniza o ambiente automaticamente antes de cada execução, então
+`uv sync` isolado só é necessário se quiser inspecionar o `.venv` diretamente.
