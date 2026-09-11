@@ -76,7 +76,13 @@ também disponível no Kaggle) na raiz do projeto:
 ```bash
 uv run python scripts/prepare_dataset.py
 uv run python scripts/train_model.py
+uv run python scripts/export_onnx.py
 ```
+
+O terceiro passo é obrigatório se o backend `onnx` for usado (padrão do
+`docker-compose.yml`) — sem ele, `models/triage_classifier.onnx` e
+`models/triage_vectorizer.joblib` ficam desatualizados em relação ao
+`triage_model.joblib` recém-treinado.
 
 ## Sobre o rótulo de urgência
 
@@ -112,12 +118,18 @@ exigência de "pelo menos 2 automações" com folga.
 
 ## Orquestração de treino (Airflow)
 
-A DAG `triage_training_pipeline` (`dags/training_dag.py`) tem duas tasks
-via TaskFlow API:
+A DAG `triage_training_pipeline` (`dags/training_dag.py`) tem três tasks
+via TaskFlow API, fechando o ciclo de vida do modelo do dado bruto até o
+artefato realmente servido pela API:
 
 1. `load_data` — extrai/processa o dataset (`ml.data.prepare_processed_datasets`).
 2. `train_and_save` — treina o pipeline TF-IDF + RandomForest e salva o
    `.joblib` (`ml.train.train_from_csv` / `save_model`).
+3. `export_onnx` — reexporta o classificador para ONNX Runtime
+   (`ml.export_onnx.convert_from_joblib`), mantendo `triage_classifier.onnx`
+   e `triage_vectorizer.joblib` sincronizados com o modelo recém-treinado —
+   sem esta etapa, um retreino deixaria o backend `onnx` (padrão do
+   `docker-compose.yml`) servindo um modelo desatualizado.
 
 Para rodar localmente via Docker:
 
@@ -197,20 +209,18 @@ sem chamadas redundantes de um lado só:
 
 | Backend | p50 (ms) | p95 (ms) | p99 (ms) | média (ms) | amostras |
 |---|---|---|---|---|---|
-| sklearn (RandomForest puro) | 43.91 | 52.56 | 82.76 | 45.16 | 600 |
-| onnx (classificador convertido) | 1.19 | 2.30 | 5.49 | 1.57 | 600 |
+| sklearn (TF-IDF + RandomForest) | 43.91 | 52.56 | 82.76 | 45.16 | 600 |
+| onnx (TF-IDF em sklearn + classificador em ONNX Runtime) | 1.19 | 2.30 | 5.49 | 1.57 | 600 |
 
-Ganho de ~37x no p50 (43.91 ms → 1.19 ms) só trocando a execução do
-classificador para o ONNX Runtime, sem alterar o vetorizador nem a
-acurácia (paridade de classificação verificada em `tests/test_export_onnx.py`
-e `tests/test_model_onnx_backend.py`). Valores absolutos de latência variam
-com a carga da máquina onde o benchmark roda — o que se mantém estável
-entre execuções é a ordem de grandeza do ganho relativo do ONNX.
-
-Ganho de ~50x no p50 (19.55 ms → 0.39 ms) só trocando a execução do
-classificador para o ONNX Runtime, sem alterar o vetorizador nem a
-acurácia (paridade de classificação verificada em `tests/test_export_onnx.py`
-e `tests/test_model_onnx_backend.py`).
+Os dois backends incluem a etapa de vetorização TF-IDF (idêntica nos dois —
+continua em sklearn/Python); a diferença isolada é a execução do
+`RandomForestClassifier`, nativa em sklearn de um lado e via ONNX Runtime
+do outro. Ganho de ~37x no p50 (43.91 ms → 1.19 ms), sem alterar o
+vetorizador nem a acurácia (paridade de classificação verificada em
+`tests/test_export_onnx.py` e `tests/test_model_onnx_backend.py`). Valores
+absolutos de latência variam com a carga da máquina onde o benchmark roda
+— o que se mantém estável entre execuções é a ordem de grandeza do ganho
+relativo do ONNX.
 
 Para alternar entre os dois backends em runtime, definir a variável de
 ambiente `MODEL_BACKEND=sklearn` ou `MODEL_BACKEND=onnx` (o
