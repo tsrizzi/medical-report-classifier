@@ -36,7 +36,14 @@ def triage_training_pipeline():
         save_model(pipeline, output_path)
         return str(output_path)
 
-    train_and_save(load_data())
+    @task
+    def export_onnx(sklearn_model_path: str) -> str:
+        from ml.export_onnx import convert_from_joblib
+
+        convert_from_joblib(Path(sklearn_model_path), MODELS_DIR)
+        return str(MODELS_DIR / "triage_classifier.onnx")
+
+    export_onnx(train_and_save(load_data()))
 
 
 triage_training_pipeline()

@@ -6,7 +6,7 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__EXECUTOR: SequentialExecutor
       PYTHONPATH: /opt/airflow
-      _PIP_ADDITIONAL_REQUIREMENTS: "scikit-learn>=1.5,<2.0 pandas>=2.2,<3.0 joblib>=1.4,<2.0"
+      _PIP_ADDITIONAL_REQUIREMENTS: "scikit-learn==1.9.1 pandas==2.3.3 joblib==1.6.0 onnx==1.22.0 onnxruntime==1.30.0 skl2onnx==1.20.0"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./ml:/opt/airflow/ml

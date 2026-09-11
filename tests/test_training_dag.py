@@ -23,3 +23,6 @@ def test_training_pipeline_produces_model(tmp_path, monkeypatch, sample_medical_
     dag_module.triage_training_pipeline().test()
 
     assert (models_dir / "triage_model.joblib").exists()
+    assert (models_dir / "triage_classifier.onnx").exists()
+    assert (models_dir / "triage_vectorizer.joblib").exists()
+    assert (models_dir / "triage_model_classes.json").exists()
