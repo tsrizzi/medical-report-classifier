@@ -228,7 +228,7 @@ ambiente `MODEL_BACKEND=sklearn` ou `MODEL_BACKEND=onnx` (o
 
 ## Vídeo (metodo STAR)
 
-Link do vídeo gravado: **[ADICIONAR LINK APOS A GRAVACAO]**
+Link do vídeo gravado: https://youtu.be/JBJVjTG4Hws
 
 ## Rodando os testes e o lint
 
